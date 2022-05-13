@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "client.org.Client"
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+dependencies {
+    implementation project(':libs')
+}
+
+
+repositories {
+    mavenCentral()
+}
+
