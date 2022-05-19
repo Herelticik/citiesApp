@@ -1,4 +1,4 @@
-package server;
+package server.converter;
 
 import lib.element.*;
 import lib.interaction.Input;

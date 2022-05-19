@@ -15,15 +15,19 @@ import java.util.Random;
 public class UserDatabaseCommander extends DatabaseCommander {
     private static UserDatabaseCommander instance = null;
     private final Connection connection;
-    private final Properties requests=new Properties();
+    private final Properties requests = new Properties();
 
     private UserDatabaseCommander() throws SQLException {
         try {
-            requests.load(getClass().getClassLoader().getResourceAsStream("usersDB-requests.properties"));
+            loadRequests();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         this.connection = getConnection();
+    }
+
+    private void loadRequests() throws IOException {
+        requests.load(getClass().getClassLoader().getResourceAsStream("usersDB-requests.properties"));
     }
 
     public static UserDatabaseCommander getInstance() {
@@ -47,83 +51,39 @@ public class UserDatabaseCommander extends DatabaseCommander {
     }
 
     public void insertElement(UserData userData) {
-        PreparedStatement statement = null;
+        String salt = generateRandomString();
         try {
-            statement = connection.prepareStatement(requests.getProperty("db.insert"));
-            MessageDigest messageDigest;
-            String salt = generateRandomString();
-            messageDigest = MessageDigest.getInstance("SHA-1");
-            messageDigest.update((userData.getPassword() + salt).getBytes());
+            PreparedStatement statement = getStatementByRequest("db.insert");
             statement.setString(1, userData.getLogin());
-            statement.setString(2, toHexBytes(messageDigest.digest()));
+            statement.setString(2, getHashedPassword(salt, userData.getPassword()));
             statement.setString(3, salt);
             statement.setString(4, userData.getEmail());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new AuthorizationException("Данный логин занят!");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException();
         }
-    }
-
-    public void checkUserPassword(UserData userData) {
-        PreparedStatement statement = null;
-        MessageDigest messageDigest = null;
-        String salt;
-        try {
-            statement = connection.prepareStatement(requests.getProperty("db.select_user"));
-            statement.setString(1, userData.getLogin());
-            ResultSet result = statement.executeQuery();
-            result.next();
-            salt = result.getString(3);
-            messageDigest = MessageDigest.getInstance("SHA-1");
-            messageDigest.update((userData.getPassword() + salt).getBytes());
-            if (!toHexBytes(messageDigest.digest()).equals(result.getString(2))) {
-                throw new AuthorizationException("Пароль или логин неверен!");
-            }
-        } catch (SQLException e) {
-            throw new AuthorizationException("Пароль или логин неверен!");
-        } catch (NoSuchAlgorithmException ignored) {
-        }
-    }
-
-    public void updatePassword(UserData userData, String password) {
-        PreparedStatement statement = null;
-        try {
-            statement = connection.prepareStatement(requests.getProperty("db.update_password"));
-            MessageDigest messageDigest;
-            String salt = generateRandomString();
-            messageDigest = MessageDigest.getInstance("SHA-1");
-            messageDigest.update((password + salt).getBytes());
-            statement.setString(1, toHexBytes(messageDigest.digest()));
-            statement.setString(2, salt);
-            statement.setString(3, userData.getLogin());
-            statement.executeUpdate();
-        } catch (SQLException | NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    public String getEmail(UserData userData) {
-        PreparedStatement statement = null;
-        String email;
-        try {
-            statement = connection.prepareStatement(requests.getProperty("db.select_user"));
-            statement.setString(1, userData.getLogin());
-            ResultSet set = statement.executeQuery();
-            set.next();
-            email = set.getString(4);
-        } catch (SQLException e) {
-            throw new MailException("Пользователя с таким почтовым адресом не существует!");
-        }
-        return email;
     }
 
     private String generateRandomString() {
-        byte[] array = new byte[10];
+        byte[] array = new byte[20];
         new Random().nextBytes(array);
         return new String(array, StandardCharsets.UTF_8);
+    }
+
+    private PreparedStatement getStatementByRequest(String requestName) throws SQLException {
+        return connection.prepareStatement(requests.getProperty(requestName));
+    }
+
+
+    private String getHashedPassword(String salt, String password) {
+        MessageDigest messageDigest;
+        try {
+            messageDigest = MessageDigest.getInstance("SHA-1");
+            messageDigest.update((password + salt).getBytes());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        return toHexBytes(messageDigest.digest());
     }
 
     private String toHexBytes(byte[] bytes) {
@@ -132,6 +92,51 @@ public class UserDatabaseCommander extends DatabaseCommander {
             result.append(String.format("%02x", aByte));
         }
         return result.toString();
+    }
+
+    public void checkUserPassword(UserData userData) {
+        String salt;
+        try {
+            PreparedStatement statement = getStatementByRequest("db.select_user");
+            statement.setString(1, userData.getLogin());
+            ResultSet row = statement.executeQuery();
+            row.next();
+            salt = row.getString(3);
+            String hashedPassword = getHashedPassword(salt, userData.getPassword());
+            if (!hashedPassword.equals(row.getString(2))) {
+                throw new AuthorizationException("Пароль или логин неверен!");
+            }
+        } catch (SQLException e) {
+            throw new AuthorizationException("Пароль или логин неверен!");
+        }
+    }
+
+    public void updatePassword(UserData userData, String password) {
+        try {
+            PreparedStatement statement = getStatementByRequest("db.update_password");
+            String salt = generateRandomString();
+            statement.setString(1, getHashedPassword(salt, password));
+            statement.setString(2, salt);
+            statement.setString(3, userData.getLogin());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    public String getEmail(UserData userData) {
+        String email;
+        try {
+            PreparedStatement statement = getStatementByRequest("db.select_user");
+            statement.setString(1, userData.getLogin());
+            ResultSet row = statement.executeQuery();
+            row.next();
+            email = row.getString(4);
+        } catch (SQLException e) {
+            throw new MailException("Пользователя с таким почтовым адресом не существует!");
+        }
+        return email;
     }
 
 

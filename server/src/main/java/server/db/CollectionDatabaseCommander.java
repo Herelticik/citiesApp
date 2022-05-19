@@ -16,14 +16,14 @@ public class CollectionDatabaseCommander extends DatabaseCommander {
 
     private CollectionDatabaseCommander() throws SQLException {
         try {
-            loadProperties();
+            loadRequests();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         this.connection = getConnection();
     }
 
-    private void loadProperties() throws IOException {
+    private void loadRequests() throws IOException {
         requests.load(getClass().getClassLoader().getResourceAsStream("cityDB-requests.properties"));
     }
 

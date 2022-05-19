@@ -7,7 +7,7 @@ import lib.element.CityBuilder;
 import lib.exceptions.*;
 import lib.element.City;
 import lib.interaction.Command;
-import server.FileInput;
+import server.converter.FileInput;
 import lib.interaction.Input;
 
 import java.io.IOException;

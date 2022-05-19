@@ -1,4 +1,4 @@
-package server;
+package server.answerStrategies;
 
 import lib.Answer;
 import lib.Request;
