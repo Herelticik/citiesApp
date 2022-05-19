@@ -6,6 +6,7 @@ import server.db.CollectionDatabaseCommander;
 import lib.element.City;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 
 /**
  * Класс события добавления

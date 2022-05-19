@@ -3,6 +3,7 @@ package server.commands;
 
 import lib.Answer;
 import lib.AnswerType;
+import lib.element.CityBuilder;
 import lib.exceptions.*;
 import lib.element.City;
 import lib.interaction.Command;
@@ -89,8 +90,9 @@ public class ExecuteScriptAction extends BinaryAction {
             scriptCommand.setSender(command.getSender());
             Answer answer = invoker.execute(scriptCommand);
             if (isNeedAnElement(answer)) {
-                City newElement = fileReader.readElement();
-                newElement.setCreator(command.getSender());
+                City newElement = new CityBuilder(fileReader.readElement())
+                        .creator(command.getSender())
+                        .build();
                 scriptCommand.setElement(newElement);
                 answer = invoker.execute(scriptCommand);
             }

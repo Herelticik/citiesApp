@@ -18,6 +18,7 @@ public class ServerRequestHandler {
     public void handle() {
         InteractionServer server = new InteractionServer();
         Request request = server.getRequest();
+
         try {
             server.sendAnswer(getAnswer(request));
         } catch (SQLException e) {

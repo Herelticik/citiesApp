@@ -4,6 +4,7 @@ import lib.Answer;
 import lib.Request;
 import lib.UserData;
 import lib.element.City;
+import lib.element.CityBuilder;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -41,12 +42,16 @@ public class InteractionClient {
     }
 
     private void setSender(Request request) {
-        if (request.getUserData()==null) {
+        if (request.getUserData() == null) {
             request.setUserData(userData);
         }
         try {
             request.getCommand().setSender(userData.getLogin());
-            request.getCommand().getElement().setCreator(userData.getLogin());
+            request.getCommand().setElement(
+                    new CityBuilder(request.getCommand().getElement())
+                            .creator(userData.getLogin())
+                            .build()
+            );
         } catch (NullPointerException ignored) {
         }
     }

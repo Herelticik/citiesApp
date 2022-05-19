@@ -18,7 +18,6 @@ public class UpdateAction extends BinaryAction {
     public Answer execute(Command command) {
         int id = getId(command);
         City element = command.getElement();
-        CollectionDatabaseCommander.getInstance().checkElementAccess(id, command.getSender());
         if (element == null) {
             return requireElement();
         }

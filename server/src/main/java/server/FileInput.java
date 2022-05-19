@@ -15,15 +15,16 @@ public class FileInput extends Input {
     @Override
     public City readElement() {
         FieldReaderFromFile reader = new FieldReaderFromFile(getReader());
-        String name = reader.nameReadEvent();
-        Coordinates coordinates = reader.coordinatesReadEvent();
-        int area = reader.areaReadEvent();
-        long population = reader.populationReadEvent();
-        Long metersAboveSeaLevel = reader.metersAboveSeaLevelReadEvent();
-        float agglomeration = reader.agglomerationReadEvent();
-        Climate climate = reader.climateReadEvent();
-        Government government = reader.governmentReadEvent();
-        Human governor = reader.governorReadEvent();
-        return new City(name, coordinates, area, population, metersAboveSeaLevel, agglomeration, climate, government, governor);
+        CityBuilder cityBuilder = new CityBuilder();
+        return cityBuilder.name(reader.nameReadEvent())
+                .coordinates(reader.coordinatesReadEvent())
+                .area(reader.areaReadEvent())
+                .population(reader.populationReadEvent())
+                .metersAboveSeaLevel(reader.metersAboveSeaLevelReadEvent())
+                .agglomeration(reader.agglomerationReadEvent())
+                .climate(reader.climateReadEvent())
+                .government(reader.governmentReadEvent())
+                .governor(reader.governorReadEvent())
+                .build();
     }
 }

@@ -5,4 +5,5 @@ gradlew.bat
 /.gradle/
 /gradle/
 **/build/
-/server/src/main/resources/
+/server/src/main/resources/database.properties
+/server/src/main/resources/email.properties

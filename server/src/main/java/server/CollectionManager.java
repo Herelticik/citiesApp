@@ -3,6 +3,7 @@ package server;
 
 import lib.element.City;
 import lib.element.CityAreaComparator;
+import lib.element.CityBuilder;
 import lib.element.Climate;
 import server.db.CollectionDatabaseCommander;
 import lib.exceptions.IncorrectCollectionException;
@@ -113,7 +114,9 @@ public class CollectionManager {
                 .stream()
                 .filter((city -> city.getId() != id))
                 .collect(Collectors.toList());
-        element.setId(id);
+        element=new CityBuilder(element)
+                .id(id)
+                .build();
         add(element);
 
     }
